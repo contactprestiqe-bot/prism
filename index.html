@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UI Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;
+  --surface:#111118;
+  --surface2:#1a1a25;
+  --border:#ffffff14;
+  --accent:#7c5cfc;
+  --accent2:#fc5c7d;
+  --gold:#f5c518;
+  --text:#f0f0ff;
+  --muted:#6b6b80;
+  --radius:14px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4,h5{font-family:'Syne',sans-serif}
+input,textarea,select,button{font-family:'DM Sans',sans-serif}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes notifSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ── Layout ── */
+#app{min-height:100vh}
+#app.hidden{display:none}
+
+/* ── Buttons ── */
+.btn{padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:500;font-size:14px;transition:all .2s;border:none;font-family:'DM Sans',sans-serif}
+.btn:hover{filter:brightness(1.15)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)!important}
+.btn-danger{background:#ff4444;color:#fff}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent)!important}
+.btn:disabled{opacity:.5;cursor:not-allowed;filter:none!important}
+
+/* ── Inputs ── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;margin-bottom:6px;font-size:13px;color:var(--muted);font-weight:500}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;font-family:'DM Sans',sans-serif}
+.form-input:focus{border-color:var(--accent)}
+textarea.form-input{resize:vertical}
+
+/* ── Tags ── */
+.tag{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px}
+
+/* ── Cards ── */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);transition:all .25s;animation:fadeUp .4s ease;overflow:hidden;position:relative}
+.card:hover{transform:translateY(-4px)}
+
+/* ── Modal overlay ── */
+.modal-overlay{position:fixed;inset:0;background:#000a;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease}
+.modal-box{background:var(--surface);border-radius:18px;border:1px solid var(--border);width:100%;max-width:560px;max-height:90vh;overflow:auto;animation:scaleIn .25s ease;box-shadow:0 24px 80px #0008}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-body{padding:24px}
+
+/* ── Nav ── */
+nav{position:sticky;top:0;z-index:400;background:var(--bg)dd;backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;gap:16px}
+.nav-logo{display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:pointer}
+.nav-logo-icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:14px}
+.nav-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.5px}
+.nav-search{flex:1;max-width:360px;position:relative}
+.nav-search input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px 8px 34px;color:var(--text);font-size:13px;outline:none}
+.nav-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none}
+.nav-links{display:flex;gap:4px}
+.nav-link{background:none;border:none;color:var(--muted);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.nav-link.active{background:var(--accent)22;color:var(--accent)}
+.nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.notif-btn{position:relative;background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.notif-badge{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:var(--accent2);font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.avatar{border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;cursor:pointer}
+
+/* ── Project grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
+.project-thumb{display:flex;align-items:center;justify-content:center;font-size:52px;border-bottom:1px solid var(--border)}
+.project-thumb img{width:100%;height:100%;object-fit:cover}
+.project-body{padding:18px}
+.project-title{font-size:17px;font-weight:700;margin-bottom:6px}
+.project-desc{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.project-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.project-footer{display:flex;align-items:center;justify-content:space-between}
+.project-stats{display:flex;gap:12px;align-items:center}
+.project-owner{display:flex;align-items:center;gap:8px}
+.like-btn{background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;color:var(--muted)}
+.like-btn.liked{color:#fc5c7d}
+
+/* ── Toast ── */
+.toast{position:fixed;top:20px;right:20px;z-index:2000;background:var(--surface);border:1px solid var(--accent)44;border-radius:14px;padding:14px 18px;min-width:260px;animation:notifSlide .3s ease;box-shadow:0 8px 32px #7c5cfc22;display:flex;align-items:center;gap:12px}
+
+/* ── Notif panel ── */
+.notif-panel{position:fixed;top:60px;right:16px;width:320px;max-height:480px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 60px #0008;z-index:500;overflow:auto;animation:fadeUp .2s ease}
+.notif-item{display:flex;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer}
+.notif-item.unread{background:var(--accent)0a}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
+
+/* ── Profile ── */
+.profile-view{position:fixed;inset:0;background:var(--bg);z-index:600;overflow:auto}
+.profile-inner{max-width:860px;margin:0 auto;padding:24px 20px}
+.profile-header{display:flex;gap:24px;align-items:flex-start;margin-bottom:40px;flex-wrap:wrap}
+.profile-avatar-lg{width:90px;height:90px;border-radius:50%;background:var(--surface2);border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:46px}
+.profile-stats{display:flex;gap:20px;color:var(--muted);font-size:13px;margin-top:10px}
+
+/* ── Auth ── */
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative;overflow:hidden}
+.auth-bg1{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,#7c5cfc18 0%,transparent 70%);top:-200px;right:-200px;pointer-events:none}
+.auth-bg2{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,#fc5c7d18 0%,transparent 70%);bottom:-100px;left:-100px;pointer-events:none}
+.auth-box{width:100%;max-width:420px;padding:20px;animation:fadeUp .4s ease}
+.auth-logo{text-align:center;margin-bottom:36px}
+.auth-logo-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:inline-flex;align-items:center;justify-content:center;font-size:20px}
+.auth-card{background:var(--surface);border-radius:18px;padding:28px;border:1px solid var(--border)}
+.auth-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface2);border-radius:10px;padding:4px}
+.auth-tab{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;font-family:'DM Sans',sans-serif}
+.auth-tab.active{background:var(--accent);color:#fff}
+.auth-tab:not(.active){background:transparent;color:var(--muted)}
+
+/* ── Hero ── */
+.hero{text-align:center;margin-bottom:48px;animation:fadeUp .5s ease}
+.hero-title{font-size:clamp(28px,5vw,52px);font-weight:800;line-height:1.1;margin-bottom:12px}
+.hero-gradient{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* ── Sort bar ── */
+.sort-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:10px}
+.sort-btns{display:flex;gap:6px}
+.sort-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif}
+.sort-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Creators ── */
+.creators-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:56px}
+.creator-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:12px;min-width:220px;animation:fadeUp .4s ease}
+
+/* ── Upload drop zone ── */
+.drop-zone{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;margin-bottom:20px;transition:border-color .2s;background:var(--surface2);min-height:120px;display:flex;align-items:center;justify-content:center}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent)}
+.color-swatches{display:flex;gap:8px;flex-wrap:wrap}
+.color-swatch{width:30px;height:30px;border-radius:8px;cursor:pointer;transition:all .15s;border:3px solid transparent}
+.color-swatch.active{border-color:#fff}
+
+/* ── Detail hero ── */
+.detail-hero{height:200px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;font-size:64px;overflow:hidden;position:relative}
+.detail-hero img{width:100%;height:100%;object-fit:cover}
+.detail-hero-links{position:absolute;top:10px;right:10px;display:flex;gap:8px}
+.detail-link{background:#fff2;backdrop-filter:blur(8px);border-radius:8px;padding:6px 12px;font-size:12px;color:#fff;text-decoration:none;font-weight:600}
+
+/* ── Comments ── */
+.comment-item{display:flex;gap:10px;padding:12px;background:var(--surface2);border-radius:10px}
+
+/* ── Avatar picker ── */
+.avatar-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.avatar-opt{width:40px;height:40px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;font-size:20px;transition:all .15s}
+.avatar-opt.active{border-color:var(--accent);background:var(--accent)22}
+
+/* ── Misc ── */
+.back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;margin-bottom:24px;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif}
+.section-heading{font-size:18px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.empty-state{text-align:center;padding:80px 20px;color:var(--muted)}
+.empty-state-icon{font-size:48px;margin-bottom:12px}
+.tab-mode{display:flex;gap:4px;margin-bottom:0;background:var(--surface2);border-radius:10px;padding:4px}
+.error-msg{color:#ff6b6b;font-size:13px;margin-bottom:12px}
+.logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif}
+</style>
+</head>
+<body>
+
+<!-- ── Auth Screen ── -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-bg1"></div>
+  <div class="auth-bg2"></div>
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div class="auth-logo-icon">⬡</div>
+        <span style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-1px">UI Hub</span>
+      </div>
+      <p style="color:var(--muted);font-size:14px">The creative portfolio platform</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab" data-tab="signup" onclick="switchAuthTab('signup')">Sign Up</button>
+      </div>
+      <div id="signup-fields" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input class="form-input" id="auth-username" placeholder="your_handle" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pick an Avatar</label>
+          <div class="avatar-picker" id="avatar-picker"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="auth-email" type="email" placeholder="hello@example.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="auth-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()" />
+      </div>
+      <div id="auth-error" class="error-msg" style="display:none"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="authSubmit()" id="auth-submit-btn">Sign In →</button>
+      <p id="auth-demo-hint" style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px">Demo: aria@uihub.io / demo</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main App ── -->
+<div id="app" style="display:none;min-height:100vh">
+
+  <!-- Navbar -->
+  <nav>
+    <div class="nav-logo" onclick="setView('home')">
+      <div class="nav-logo-icon">⬡</div>
+      <span class="nav-logo-text">UI Hub</span>
+    </div>
+    <div class="nav-search">
+      <span class="nav-search-icon">🔍</span>
+      <input placeholder="Search projects..." id="search-input" oninput="renderFeed()" />
+    </div>
+    <div class="nav-links">
+      <button class="nav-link active" data-view="home" onclick="setView('home')">Explore</button>
+      <button class="nav-link" data-view="following" onclick="setView('following')">Following</button>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-primary" style="padding:7px 14px;font-size:13px" onclick="openUploadModal()">+ Upload</button>
+      <button class="notif-btn" onclick="toggleNotifPanel()" id="notif-btn">🔔<span class="notif-badge" id="notif-badge" style="display:none">0</span></button>
+      <div class="avatar" id="nav-avatar" style="width:36px;height:36px;font-size:18px" onclick="openOwnProfile()"></div>
+      <button class="logout-btn" onclick="logout()">↩</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main style="max-width:1100px;margin:0 auto;padding:28px 20px" id="main-area">
+    <!-- Hero -->
+    <div class="hero" id="hero-section">
+      <h1 class="hero-title">The Home for<br><span class="hero-gradient">Creative Devs</span></h1>
+      <p style="color:var(--muted);font-size:16px;max-width:480px;margin:0 auto 24px">Showcase your UI work, discover amazing projects, and connect with the community.</p>
+      <button class="btn btn-primary" style="padding:12px 28px;font-size:15px" onclick="openUploadModal()">Upload Your Project ✦</button>
+    </div>
+
+    <!-- Sort bar -->
+    <div class="sort-bar">
+      <h2 style="font-size:18px;color:var(--muted);font-weight:600" id="feed-label">All Projects</h2>
+      <div class="sort-btns">
+        <button class="sort-btn active" data-sort="recent" onclick="setSort('recent')">Recent</button>
+        <button class="sort-btn" data-sort="popular" onclick="setSort('popular')">Popular</button>
+        <button class="sort-btn" data-sort="views" onclick="setSort('views')">Views</button>
+      </div>
+    </div>
+
+    <!-- Project grid -->
+    <div class="grid" id="project-grid"></div>
+
+    <!-- Creators section -->
+    <div id="creators-section" style="margin-top:56px">
+      <h2 style="font-size:18px;margin-bottom:20px">Creators to Follow</h2>
+      <div class="creators-row" id="creators-row"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ── Notification Panel ── -->
+<div id="notif-overlay" style="display:none;position:fixed;inset:0;z-index:499" onclick="closeNotifPanel()">
+  <div onclick="event.stopPropagation()" class="notif-panel" id="notif-panel">
+    <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h4 style="font-size:15px">Notifications</h4>
+      <button onclick="markAllRead()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-weight:600">Mark all read</button>
+    </div>
+    <div id="notif-list"></div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast" class="toast" style="display:none">
+  <div class="avatar" id="toast-avatar" style="width:34px;height:34px;font-size:17px"></div>
+  <div>
+    <p style="font-size:13px;font-weight:600" id="toast-user"></p>
+    <p style="font-size:12px;color:var(--muted)" id="toast-msg"></p>
+  </div>
+  <button onclick="hideToast()" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-left:auto;font-size:18px">×</button>
+</div>
+
+<!-- ── Upload / Edit Modal ── -->
+<div id="upload-modal" class="modal-overlay" style="display:none" onclick="closeUploadModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="upload-modal-title">Upload Project</h3>
+      <button onclick="closeUploadModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondrop="handleDrop(event)" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')">
+        <input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFileInput(event)" />
+        <div id="drop-content"><div style="font-size:32px;margin-bottom:8px">📁</div><p style="color:var(--muted);font-size:13px">Drop screenshot or click to upload</p></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Project Title</label>
+        <input class="form-input" id="upload-title" placeholder="My Awesome Project" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" id="upload-desc" placeholder="What did you build?" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags (comma-separated)</label>
+        <input class="form-input" id="upload-tags" placeholder="React, CSS, TypeScript" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Netlify / Live URL</label>
+        <input class="form-input" id="upload-link" placeholder="https://myproject.netlify.app" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">GitHub URL</label>
+        <input class="form-input" id="upload-github" placeholder="https://github.com/user/repo" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Accent Color</label>
+        <div class="color-swatches" id="color-swatches"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-ghost" style="flex:1" onclick="closeUploadModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" id="upload-submit-btn" onclick="submitUpload()">Publish Project ✦</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Project Detail Modal ── -->
+<div id="detail-modal" class="modal-overlay" style="display:none" onclick="closeDetail(event)">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px">
+    <div class="modal-header" style="padding:16px 24px">
+      <span></span>
+      <button onclick="closeDetail()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px">×</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- ── Profile View ── -->
+<div id="profile-view" style="display:none" class="profile-view">
+  <div class="profile-inner" id="profile-inner"></div>
+</div>
+
+<script>
+// ─── Data ────────────────────────────────────────────────────────────────────
+const AVATARS = ["🎨","🚀","💎","🌊","🔥","⚡","🦋","🎯","🌙","🎭"];
+const COLORS = ["#7c5cfc","#fc5c7d","#f5c518","#00d4aa","#ff6b35","#4fc3f7"];
+
+const defaultUsers = [
+  {id:"u1",username:"aria_dev",email:"aria@uihub.io",password:"demo",avatar:"🎨",bio:"UI/UX designer & frontend dev",followers:["u2"],following:["u2"],github:"aria-dev",netlify:""},
+  {id:"u2",username:"jax_codes",email:"jax@uihub.io",password:"demo",avatar:"🚀",bio:"Building the future one component at a time",followers:["u1"],following:["u1"],github:"jax-codes",netlify:""},
+];
+const defaultProjects = [
+  {id:"p1",userId:"u1",title:"Aurora Dashboard",desc:"A dark-mode analytics dashboard with glassmorphism effects and real-time charts.",tags:["React","TailwindCSS","Recharts"],img:null,color:"#7c5cfc",link:"https://aurora-dash.netlify.app",github:"https://github.com/aria-dev/aurora",likes:["u2"],views:312,createdAt:Date.now()-86400000*3},
+  {id:"p2",userId:"u2",title:"Pixel Portfolio",desc:"Retro pixel-art portfolio with custom CSS animations and interactive mini-games.",tags:["HTML","CSS","JavaScript"],img:null,color:"#fc5c7d",link:"https://pixel-folio.netlify.app",github:"https://github.com/jax-codes/pixel",likes:["u1"],views:198,createdAt:Date.now()-86400000*7},
+  {id:"p3",userId:"u1",title:"NeonType",desc:"A minimalist typing speed test with neon aesthetics and detailed WPM analytics.",tags:["Vue","Vite","CSS"],img:null,color:"#f5c518",link:"",github:"https://github.com/aria-dev/neontype",likes:[],views:87,createdAt:Date.now()-86400000},
+];
+const defaultComments = [
+  {id:"c1",projectId:"p1",userId:"u2",text:"Absolutely stunning work! The glassmorphism effect is 🔥",createdAt:Date.now()-3600000*5},
+  {id:"c2",projectId:"p2",userId:"u1",text:"The pixel art transitions are genius. Bookmarked!",createdAt:Date.now()-3600000*2},
+];
+const defaultNotifs = [
+  {id:"n1",toUser:"u1",fromUser:"u2",type:"follow",read:false,createdAt:Date.now()-3600000},
+  {id:"n2",toUser:"u1",fromUser:"u2",type:"comment",projectId:"p1",text:"commented on your project",read:false,createdAt:Date.now()-1800000},
+];
+
+// ─── Store ────────────────────────────────────────────────────────────────────
+function load(key, def) {
+  try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; }
+}
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+let users = load("uihub_users", defaultUsers);
+let projects = load("uihub_projects", defaultProjects);
+let comments = load("uihub_comments", defaultComments);
+let notifications = load("uihub_notifs", defaultNotifs);
+let currentUser = null;
+let currentView = "home";
+let currentSort = "recent";
+let uploadImg = null;
+let editingProjectId = null;
+let selectedProject = null;
+let profileUserId = null;
+let toastTimer = null;
+
+function persist() {
+  save("uihub_users", users);
+  save("uihub_projects", projects);
+  save("uihub_comments", comments);
+  save("uihub_notifs", notifications);
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function genId() { return Math.random().toString(36).slice(2,10); }
+function timeAgo(ts) {
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return s+'s ago';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+function getUserById(id) { return users.find(u=>u.id===id); }
+function getProjectById(id) { return projects.find(p=>p.id===id); }
+function syncCurrentUser() {
+  if(currentUser) currentUser = getUserById(currentUser.id) || currentUser;
+}
+function avatarEl(user, size=38) {
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.floor(size*.42)}px">${user?.avatar||'👤'}</div>`;
+}
+function tagEl(text, color) {
+  const bg = color ? color+'22' : 'var(--surface2)';
+  const fg = color || 'var(--muted)';
+  const bc = color ? color+'44' : 'var(--border)';
+  return `<span class="tag" style="background:${bg};color:${fg};border:1px solid ${bc}">${text}</span>`;
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+let authMode = 'login';
+let selectedAvatar = '🎨';
+
+function initAuth() {
+  // Avatar picker
+  const picker = document.getElementById('avatar-picker');
+  picker.innerHTML = AVATARS.map(a=>`<button class="avatar-opt${a===selectedAvatar?' active':''}" onclick="selectAvatar('${a}')">${a}</button>`).join('');
+}
+
+function selectAvatar(a) {
+  selectedAvatar = a;
+  document.querySelectorAll('.avatar-opt').forEach(el=>{
+    el.classList.toggle('active', el.textContent===a);
+  });
+}
+
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===mode));
+  document.getElementById('signup-fields').style.display = mode==='signup'?'block':'none';
+  document.getElementById('auth-demo-hint').style.display = mode==='login'?'block':'none';
+  document.getElementById('auth-submit-btn').textContent = mode==='login'?'Sign In →':'Create Account →';
+  document.getElementById('auth-error').style.display='none';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function authSubmit() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if(authMode==='login') {
+    const u = users.find(u=>u.email===email && u.password===password);
+    if(!u) return showAuthError('Invalid credentials');
+    loginUser(u);
+  } else {
+    const username = document.getElementById('auth-username').value.trim();
+    if(!username||!email||!password) return showAuthError('Fill all fields');
+    if(users.find(u=>u.email===email)) return showAuthError('Email already in use');
+    if(users.find(u=>u.username===username)) return showAuthError('Username taken');
+    const u = {id:genId(),username,email,password,avatar:selectedAvatar,bio:'',followers:[],following:[],github:'',netlify:''};
+    users.push(u);
+    persist();
+    loginUser(u);
+  }
+}
+
+function loginUser(u) {
+  currentUser = u;
+  save('uihub_session', {id:u.id});
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  initApp();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('uihub_session');
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  // reset form
+  document.getElementById('auth-email').value='';
+  document.getElementById('auth-password').value='';
+  document.getElementById('auth-error').style.display='none';
+}
+
+// ─── App Init ─────────────────────────────────────────────────────────────────
+function initApp() {
+  syncCurrentUser();
+  renderNavAvatar();
+  updateNotifBadge();
+  renderFeed();
+  renderCreators();
+}
+
+function renderNavAvatar() {
+  const el = document.getElementById('nav-avatar');
+  el.textContent = currentUser.avatar || '👤';
+}
+
+// ─── View ─────────────────────────────────────────────────────────────────────
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.nav-link').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
+  document.getElementById('hero-section').style.display = (v==='home' && !document.getElementById('search-input').value) ? 'block' : 'none';
+  document.getElementById('creators-section').style.display = (v==='home' && !document.getElementById('search-input').value) ? 'block' : 'none';
+  renderFeed();
+}
+
+function setSort(s) {
+  currentSort = s;
+  document.querySelectorAll('.sort-btn').forEach(el=>el.classList.toggle('active',el.dataset.sort===s));
+  renderFeed();
+}
+
+// ─── Feed ─────────────────────────────────────────────────────────────────────
+function renderFeed() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const hero = document.getElementById('hero-section');
+  const creatorsSection = document.getElementById('creators-section');
+  const showHero = currentView==='home' && !search;
+  hero.style.display = showHero ? 'block' : 'none';
+  creatorsSection.style.display = showHero ? 'block' : 'none';
+
+  let ps = [...projects];
+  if(search) ps = ps.filter(p=>p.title.toLowerCase().includes(search)||p.tags?.join(' ').toLowerCase().includes(search));
+  if(currentView==='following') ps = ps.filter(p=>currentUser?.following?.includes(p.userId));
+  if(currentSort==='popular') ps.sort((a,b)=>(b.likes?.length||0)-(a.likes?.length||0));
+  else if(currentSort==='views') ps.sort((a,b)=>b.views-a.views);
+  else ps.sort((a,b)=>b.createdAt-a.createdAt);
+
+  const label = document.getElementById('feed-label');
+  const viewLabel = currentView==='following' ? 'Following Feed' : search ? `Results for "${search}"` : 'All Projects';
+  label.innerHTML = `${viewLabel} <span style="margin-left:8px;font-size:14px;color:var(--accent)">${ps.length}</span>`;
+
+  const grid = document.getElementById('project-grid');
+  if(ps.length===0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">🌌</div><p style="font-size:16px">${currentView==='following'?'Follow creators to see their work here.':'No projects found.'}</p></div>`;
+    return;
+  }
+  grid.innerHTML = ps.map(p=>projectCardHTML(p)).join('');
+  renderCreators();
+}
+
+function projectCardHTML(p) {
+  const owner = getUserById(p.userId);
+  const liked = p.likes?.includes(currentUser?.id);
+  const thumbContent = p.img ? `<img src="${p.img}" alt="" />` : '💻';
+  const tagsHTML = (p.tags||[]).map(t=>tagEl(t,p.color)).join('');
+  return `
+  <div class="card" onclick="openProject('${p.id}')" style="cursor:pointer" onmouseenter="this.style.borderColor='${p.color}66'" onmouseleave="this.style.borderColor='var(--border)'">
+    <div style="height:4px;background:linear-gradient(90deg,${p.color},${p.color}88)"></div>
+    <div class="project-thumb" style="height:160px;background:linear-gradient(135deg,${p.color}22,${p.color}08)">${thumbContent}</div>
+    <div class="project-body">
+      <h3 class="project-title">${escHtml(p.title)}</h3>
+      <p class="project-desc">${escHtml(p.desc)}</p>
+      <div class="project-tags">${tagsHTML}</div>
+      <div class="project-footer">
+        <div class="project-owner">
+          <div class="avatar" style="width:24px;height:24px;font-size:12px" onclick="event.stopPropagation();openProfileById('${owner?.id}')">${owner?.avatar||'👤'}</div>
+          <span style="font-size:12px;color:var(--muted)">${escHtml(owner?.username||'')}</span>
+        </div>
+        <div class="project-stats">
+          <span style="font-size:12px;color:var(--muted)">👁 ${p.views}</span>
+          <button class="like-btn${liked?' liked':''}" onclick="event.stopPropagation();handleLike('${p.id}')">${liked?'♥':'♡'} ${p.likes?.length||0}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderCreators() {
+  const row = document.getElementById('creators-row');
+  if(!row) return;
+  const others = users.filter(u=>u.id!==currentUser?.id);
+  if(others.length===0){row.innerHTML='';return;}
+  row.innerHTML = others.map(u=>{
+    const isF = currentUser?.following?.includes(u.id);
+    const pCount = projects.filter(p=>p.userId===u.id).length;
+    return `
+    <div class="creator-card">
+      <div class="avatar" style="width:42px;height:42px;font-size:22px" onclick="openProfileById('${u.id}')">${u.avatar}</div>
+      <div style="flex:1">
+        <p style="font-weight:700;font-size:14px;cursor:pointer" onclick="openProfileById('${u.id}')">${escHtml(u.username)}</p>
+        <p style="font-size:12px;color:var(--muted)">${pCount} projects · ${u.followers?.length||0} followers</p>
+      </div>
+      <button class="btn ${isF?'btn-ghost':'btn-outline'}" style="padding:5px 12px;font-size:12px" onclick="handleFollow('${u.id}')">${isF?'✓':'+'}</button>
+    </div>`;
+  }).join('');
+}
+
+// ─── Likes / Follow ───────────────────────────────────────────────────────────
+function handleLike(projectId) {
+  const idx = projects.findIndex(p=>p.id===projectId);
+  if(idx<0) return;
+  const p = projects[idx];
+  const liked = p.likes?.includes(currentUser.id);
+  projects[idx] = {...p, likes: liked ? p.likes.filter(id=>id!==currentUser.id) : [...(p.likes||[]),currentUser.id]};
+  if(!liked) addNotif(p.userId,'like',{projectId});
+  persist();
+  renderFeed();
+  if(selectedProject?.id===projectId) {
+    selectedProject = projects[idx];
+    renderDetailBody();
+  }
+}
+
+function handleFollow(userId) {
+  syncCurrentUser();
+  const isFollowing = currentUser.following?.includes(userId);
+  users = users.map(u=>{
+    if(u.id===currentUser.id) return {...u, following: isFollowing?u.following.filter(id=>id!==userId):[...(u.following||[]),userId]};
+    if(u.id===userId) return {...u, followers: isFollowing?u.followers.filter(id=>id!==currentUser.id):[...(u.followers||[]),currentUser.id]};
+    return u;
+  });
+  if(!isFollowing) addNotif(userId,'follow');
+  syncCurrentUser();
+  persist();
+  renderFeed();
+  renderCreators();
+  if(selectedProject) renderDetailBody();
+  if(profileUserId) renderProfile();
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+function addNotif(toUser, type, extra={}) {
+  if(toUser===currentUser.id) return;
+  const n = {id:genId(),toUser,fromUser:currentUser.id,type,read:false,createdAt:Date.now(),...extra};
+  notifications = [n,...notifications];
+  persist();
+  updateNotifBadge();
+  showToast(n);
+}
+
+function updateNotifBadge() {
+  const unread = notifications.filter(n=>n.toUser===currentUser?.id&&!n.read).length;
+  const badge = document.getElementById('notif-badge');
+  badge.style.display = unread>0?'flex':'none';
+  badge.textContent = unread>9?'9+':unread;
+}
+
+function toggleNotifPanel() {
+  const ov = document.getElementById('notif-overlay');
+  if(ov.style.display==='none'||!ov.style.display) { renderNotifPanel(); ov.style.display='block'; }
+  else ov.style.display='none';
+}
+function closeNotifPanel() { document.getElementById('notif-overlay').style.display='none'; }
+
+function renderNotifPanel() {
+  const mine = notifications.filter(n=>n.toUser===currentUser.id).sort((a,b)=>b.createdAt-a.createdAt);
+  const list = document.getElementById('notif-list');
+  if(mine.length===0){list.innerHTML='<p style="padding:24px;text-align:center;color:var(--muted);font-size:13px">All caught up! 🎉</p>';return;}
+  list.innerHTML = mine.map(n=>{
+    const from = getUserById(n.fromUser);
+    const msg = n.type==='follow'?'followed you':n.type==='comment'?'commented on your project':'liked your project';
+    return `
+    <div class="notif-item${n.read?'':' unread'}">
+      <div class="avatar" style="width:32px;height:32px;font-size:16px">${from?.avatar||'👤'}</div>
+      <div style="flex:1">
+        <p style="font-size:13px"><strong>${escHtml(from?.username||'')}</strong> ${msg}</p>
+        <p style="font-size:11px;color:var(--muted);margin-top:2px">${timeAgo(n.createdAt)}</p>
+      </div>
+      ${!n.read?'<div class="notif-dot"></div>':''}
+    </div>`;
+  }).join('');
+}
+
+function markAllRead() {
+  notifications = notifications.map(n=>n.toUser===currentUser.id?{...n,read:true}:n);
+  persist();
+  updateNotifBadge();
+  renderNotifPanel();
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function showToast(n) {
+  const from = getUserById(n.fromUser);
+  if(!from) return;
+  document.getElementById('toast-avatar').textContent = from.avatar;
+  document.getElementById('toast-user').textContent = from.username;
+  const msg = n.type==='follow'?'started following you':n.type==='comment'?'commented on your project':'liked your project';
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.style.display='flex';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 4000);
+}
+function hideToast() { document.getElementById('toast').style.display='none'; }
+
+// ─── Upload Modal ─────────────────────────────────────────────────────────────
+let selectedColor = COLORS[0];
+
+function openUploadModal(editProject=null) {
+  editingProjectId = editProject ? editProject.id : null;
+  uploadImg = editProject?.img || null;
+  selectedColor = editProject?.color || COLORS[0];
+
+  document.getElementById('upload-modal-title').textContent = editProject ? 'Edit Project' : 'Upload Project';
+  document.getElementById('upload-submit-btn').textContent = editProject ? 'Save Changes' : 'Publish Project ✦';
+  document.getElementById('upload-title').value = editProject?.title||'';
+  document.getElementById('upload-desc').value = editProject?.desc||'';
+  document.getElementById('upload-tags').value = editProject ? (Array.isArray(editProject.tags)?editProject.tags.join(', '):editProject.tags) : '';
+  document.getElementById('upload-link').value = editProject?.link||'';
+  document.getElementById('upload-github').value = editProject?.github||'';
+
+  const dc = document.getElementById('drop-content');
+  if(uploadImg) dc.innerHTML=`<img src="${uploadImg}" alt="" style="max-height:120px;border-radius:8px;max-width:100%">`;
+  else dc.innerHTML=`<div style="font-size:32px;margin-bottom:8px">📁</div><p style="color:var(--muted);font-size:13px">Drop screenshot or click to upload</p>`;
+
+  // Color swatches
+  const sw = document.getElementById('color-swatches');
+  sw.innerHTML = COLORS.map(c=>`<div class="color-swatch${c===selectedColor?' active':''}" style="background:${c}" onclick="selectColor('${c}')"></div>`).join('');
+
+  document.getElementById('upload-modal').style.display='flex';
+}
+
+function selectColor(c) {
+  selectedColor = c;
+  document.querySelectorAll('.color-swatch').forEach(el=>el.classList.toggle('active',el.style.background===c||el.getAttribute('style').includes(c)));
+}
+
+function closeUploadModal(e) {
+  if(e && e.target!==document.getElementById('upload-modal')) return;
+  document.getElementById('upload-modal').style.display='none';
+  editingProjectId = null;
+  uploadImg = null;
+}
+
+function handleFileInput(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  readImage(file);
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if(!file) return;
+  readImage(file);
+}
+function readImage(file) {
+  const r = new FileReader();
+  r.onload = ev => {
+    uploadImg = ev.target.result;
+    const dc = document.getElementById('drop-content');
+    dc.innerHTML=`<img src="${uploadImg}" alt="" style="max-height:120px;border-radius:8px;max-width:100%">`;
+  };
+  r.readAsDataURL(file);
+}
+
+function submitUpload() {
+  const title = document.getElementById('upload-title').value.trim();
+  if(!title) return;
+  const rawTags = document.getElementById('upload-tags').value;
+  const tags = rawTags.split(',').map(t=>t.trim()).filter(Boolean);
+  const form = {
+    title,
+    desc: document.getElementById('upload-desc').value.trim(),
+    tags,
+    color: selectedColor,
+    link: document.getElementById('upload-link').value.trim(),
+    github: document.getElementById('upload-github').value.trim(),
+    img: uploadImg,
+  };
+  if(editingProjectId) {
+    projects = projects.map(p=>p.id===editingProjectId?{...p,...form}:p);
+    if(selectedProject?.id===editingProjectId) { selectedProject={...selectedProject,...form}; renderDetailBody(); }
+  } else {
+    const p = {id:genId(),userId:currentUser.id,createdAt:Date.now(),views:0,likes:[],...form};
+    projects = [p,...projects];
+  }
+  persist();
+  renderFeed();
+  document.getElementById('upload-modal').style.display='none';
+  editingProjectId=null; uploadImg=null;
+}
+
+// ─── Project Detail ───────────────────────────────────────────────────────────
+function openProject(id) {
+  const idx = projects.findIndex(p=>p.id===id);
+  if(idx<0) return;
+  projects[idx] = {...projects[idx], views:(projects[idx].views||0)+1};
+  persist();
+  selectedProject = projects[idx];
+  document.getElementById('detail-modal').style.display='flex';
+  renderDetailBody();
+  renderFeed();
+}
+
+function closeDetail(e) {
+  if(e && e.target!==document.getElementById('detail-modal')) return;
+  document.getElementById('detail-modal').style.display='none';
+  selectedProject=null;
+}
+
+function renderDetailBody() {
+  const p = selectedProject;
+  if(!p) return;
+  const owner = getUserById(p.userId);
+  const liked = p.likes?.includes(currentUser?.id);
+  const isFollowing = currentUser?.following?.includes(p.userId);
+  const isOwn = owner?.id===currentUser?.id;
+  const projectComments = comments.filter(c=>c.projectId===p.id);
+
+  const thumbContent = p.img ? `<img src="${p.img}" alt="" />` : '💻';
+  const tagsHTML = (p.tags||[]).map(t=>tagEl(t,p.color)).join('');
+  const commentsHTML = projectComments.length===0
+    ? `<p style="font-size:13px;color:var(--muted);text-align:center;padding:16px">No comments yet. Be first! 👇</p>`
+    : projectComments.map(c=>{
+        const cu=getUserById(c.userId);
+        return `<div class="comment-item"><div class="avatar" style="width:30px;height:30px;font-size:15px">${cu?.avatar||'👤'}</div><div><div style="display:flex;gap:8px;align-items:baseline;margin-bottom:4px"><span style="font-size:13px;font-weight:600">${escHtml(cu?.username||'')}</span><span style="font-size:11px;color:var(--muted)">${timeAgo(c.createdAt)}</span></div><p style="font-size:13px;line-height:1.5">${escHtml(c.text)}</p></div></div>`;
+      }).join('');
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-hero" style="background:linear-gradient(135deg,${p.color}33,${p.color}11)">
+      ${thumbContent}
+      <div class="detail-hero-links">
+        ${p.link?`<a href="${escAttr(p.link)}" target="_blank" rel="noreferrer" class="detail-link">↗ Live</a>`:''}
+        ${p.github?`<a href="${escAttr(p.github)}" target="_blank" rel="noreferrer" class="detail-link">⌥ GitHub</a>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">${tagsHTML}</div>
+    <h2 style="font-size:22px;margin:12px 0 6px">${escHtml(p.title)}</h2>
+    <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px">${escHtml(p.desc)}</p>
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:16px">
+      <div class="avatar" style="width:36px;height:36px;font-size:18px" onclick="openProfileById('${owner?.id}')">${owner?.avatar||'👤'}</div>
+      <div style="flex:1">
+        <p style="font-size:14px;font-weight:600">${escHtml(owner?.username||'')}</p>
+        <p style="font-size:12px;color:var(--muted)">${timeAgo(p.createdAt)}</p>
+      </div>
+      ${!isOwn?`<button class="btn ${isFollowing?'btn-ghost':'btn-outline'}" style="padding:6px 14px;font-size:12px" onclick="handleFollow('${owner.id}')">
+        ${isFollowing?'Following':'+ Follow'}
+      </button>`:`<div style="display:flex;gap:8px"><button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="editCurrentProject()">Edit</button><button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="deleteCurrentProject()">Delete</button></div>`}
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:20px">
+      <button onclick="handleLike('${p.id}')" style="background:none;border:1px solid var(--border);cursor:pointer;padding:8px 16px;border-radius:10px;color:${liked?'#fc5c7d':'var(--muted)'};font-size:14px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif">
+        ${liked?'♥':'♡'} ${p.likes?.length||0} Likes
+      </button>
+      <span style="color:var(--muted);font-size:13px;display:flex;align-items:center">👁 ${p.views} views</span>
+    </div>
+    <h4 style="font-size:15px;margin-bottom:12px;color:var(--muted)">Comments (${projectComments.length})</h4>
+    <div style="max-height:200px;overflow-y:auto;margin-bottom:16px;display:flex;flex-direction:column;gap:10px" id="comments-list">${commentsHTML}</div>
+    <div style="display:flex;gap:8px">
+      <div class="avatar" style="width:34px;height:34px;font-size:17px">${currentUser?.avatar||'👤'}</div>
+      <div style="flex:1;display:flex;gap:8px">
+        <input id="comment-input" placeholder="Add a comment..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;font-family:'DM Sans',sans-serif" onkeydown="if(event.key==='Enter')submitComment()" />
+        <button class="btn btn-primary" style="padding:10px 16px" onclick="submitComment()">→</button>
+      </div>
+    </div>
+  `;
+}
+
+function submitComment() {
+  const input = document.getElementById('comment-input');
+  const text = input.value.trim();
+  if(!text || !selectedProject) return;
+  const c = {id:genId(),projectId:selectedProject.id,userId:currentUser.id,text,createdAt:Date.now()};
+  comments.push(c);
+  addNotif(selectedProject.userId,'comment',{projectId:selectedProject.id,text});
+  persist();
+  input.value='';
+  renderDetailBody();
+}
+
+function editCurrentProject() {
+  openUploadModal(selectedProject);
+}
+function deleteCurrentProject() {
+  if(!selectedProject) return;
+  projects = projects.filter(p=>p.id!==selectedProject.id);
+  comments = comments.filter(c=>c.projectId!==selectedProject.id);
+  persist();
+  document.getElementById('detail-modal').style.display='none';
+  selectedProject=null;
+  renderFeed();
+}
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
+function openOwnProfile() { openProfileById(currentUser.id); }
+function openProfileById(id) {
+  profileUserId = id;
+  document.getElementById('profile-view').style.display='block';
+  renderProfile();
+}
+function closeProfile() {
+  document.getElementById('profile-view').style.display='none';
+  profileUserId=null;
+}
+
+function renderProfile() {
+  syncCurrentUser();
+  const pUser = getUserById(profileUserId);
+  if(!pUser) return;
+  const isOwn = pUser.id===currentUser.id;
+  const isFollowing = currentUser.following?.includes(pUser.id);
+  const userProjects = projects.filter(p=>p.userId===pUser.id);
+
+  const projectsHTML = userProjects.length===0
+    ? `<p style="color:var(--muted);font-size:14px">No projects yet.</p>`
+    : `<div class="grid">${userProjects.map(p=>projectCardHTML(p)).join('')}</div>`;
+
+  document.getElementById('profile-inner').innerHTML = `
+    <button class="back-btn" onclick="closeProfile()">← Back</button>
+    <div class="profile-header">
+      <div class="profile-avatar-lg">${pUser.avatar}</div>
+      <div style="flex:1">
+        <h1 style="font-size:28px;margin-bottom:4px">${escHtml(pUser.username)}</h1>
+        ${isOwn?`
+          <div id="bio-display" style="color:var(--muted);font-size:14px;margin-bottom:10px">
+            ${escHtml(pUser.bio||'No bio yet.')} <button onclick="showBioEdit()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px">edit</button>
+          </div>
+          <div id="bio-edit" style="display:none;margin-bottom:10px">
+            <div style="display:flex;gap:8px">
+              <input id="bio-input" value="${escAttr(pUser.bio||'')}" style="background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:6px 10px;color:var(--text);font-size:14px;flex:1;outline:none;font-family:'DM Sans',sans-serif" />
+              <button class="btn btn-primary" style="padding:6px 12px" onclick="saveBio()">Save</button>
+            </div>
+          </div>`
+        :`<p style="color:var(--muted);font-size:14px;margin-bottom:10px">${escHtml(pUser.bio||'No bio yet.')}</p>`}
+        <div class="profile-stats">
+          <span><strong style="color:var(--text)">${userProjects.length}</strong> projects</span>
+          <span><strong style="color:var(--text)">${pUser.followers?.length||0}</strong> followers</span>
+          <span><strong style="color:var(--text)">${pUser.following?.length||0}</strong> following</span>
+        </div>
+      </div>
+      ${!isOwn?`<button class="btn ${isFollowing?'btn-ghost':'btn-primary'}" onclick="handleFollow('${pUser.id}')">${isFollowing?'✓ Following':'+ Follow'}</button>`:''}
+    </div>
+    <h3 class="section-heading">Projects</h3>
+    ${projectsHTML}
+  `;
+}
+
+function showBioEdit() {
+  document.getElementById('bio-display').style.display='none';
+  document.getElementById('bio-edit').style.display='block';
+}
+function saveBio() {
+  const bio = document.getElementById('bio-input').value.trim();
+  users = users.map(u=>u.id===currentUser.id?{...u,bio}:u);
+  syncCurrentUser();
+  persist();
+  renderProfile();
+}
+
+// ─── Escape helpers ───────────────────────────────────────────────────────────
+function escHtml(s) {
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return escHtml(s); }
+
+// ─── Startup ──────────────────────────────────────────────────────────────────
+initAuth();
+
+// Try restore session
+const savedSession = load('uihub_session', null);
+if(savedSession) {
+  const u = getUserById(savedSession.id);
+  if(u) { currentUser=u; document.getElementById('auth-screen').style.display='none'; document.getElementById('app').style.display='block'; initApp(); }
+}
+</script>
+</body>
+</html>
